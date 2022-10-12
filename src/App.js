@@ -1,24 +1,118 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from 'react';
+import KRGlue from '@lyracom/embedded-form-glue';
+import axios from 'axios';
+import PaymentForm from './components/PaymentForm';
 
 function App() {
+
+  const [isShow, setIsShow] = useState(false);
+  const [isValid, setIsValid] = useState(true);
+  const [amount, setAmount] = useState("");
+
+  const publicKey = "{ShopId}:testpublickey_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+  const endPoint = "https://api.micuentaweb.pe";
+  const server = "http://yourserver.pe";
+
+  const payment = ()=>{
+    //Expresion Regular Solo Números
+    const ExpRegSoloNumeros="^[0-9]+$";
+    //Evaluación de Cadena Valida de Solo Números 
+    if(amount.match(ExpRegSoloNumeros)!=null){
+      getFormToken(amount,publicKey,endPoint);
+      setIsShow(true);
+    }else{
+      setIsValid(false);
+      setTimeout(()=>setIsValid(true),3000)
+    }
+  }
+
+  const getFormToken = (monto, publicKey, domain) => {
+    const dataPayment = {
+        amount: monto*100,
+        currency: "USD",
+        customer:{
+          email: "example@gmail.com"
+        },
+        orderId: "pedido-0"
+    }
+    axios.post(`${server}/api/createPayment`,dataPayment)
+    .then(({data}) => {
+      KRGlue.loadLibrary(domain,publicKey)
+      .then(({KR}) => KR.setFormConfig({
+        formToken:data.formToken,
+      }))
+      .then(({ KR }) => KR.onSubmit(validatePayment) )
+      .then(({ KR }) => KR.attachForm("#form") )
+      .then(({ KR, result }) => KR.showForm(result.formId))
+    })
+    .catch(err=>console.log(err))
+
+  }
+
+  const validatePayment = (resp) => {
+    axios.post(`${server}/api/validatePayment`, resp)
+    .then(({data}) => {
+      if (data==="Valid Payment"){
+        setIsShow(false);
+        alert("Pago Satisfactorio");
+        
+      }
+    })
+    return false;
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className='container'>
+      <main>
+          <div className="py-5 text-center">      
+            <h3>Ejemplo de un formulario incrustado con React</h3>
+            <p className="lead"></p>
+          </div>
+
+          <div className="row g-5">
+            <div className="col-md-5 col-lg-4 order-md-last">
+              <div className="d-flex justify-content-center">
+                <h4>
+                  <span className="text-primary">Formulario Popin</span>                  
+                </h4>
+              </div>
+              <hr className="my-4"/>
+              <div className="d-flex justify-content-center">
+                <div id="myDIV" className="formulario" style={{display: isShow?"block":"none" }}>
+                  <div id="form">
+                    <PaymentForm popin={true} />
+                  </div> 
+                </div>                         
+              </div>                    
+              <hr className="my-4"/>
+            </div>
+              
+
+            <div className="col-md-7 col-lg-8">            
+              <form className="needs-validation">
+                <div className="row g-3">
+                  <div className="col-sm-6">
+                    <label htmlFor="firstName" className="form-label">Monto Total</label>
+                    <input type="text" className="form-control" onChange={e=>setAmount(e.target.value) } value={amount} placeholder="S/." required />
+                    <div className="invalid-feedback" style={{display: isValid ?"none":"block"}}>Ingrese un monto válido.</div>
+                  </div>
+
+                  <div className="col-sm-6">
+                    <label htmlFor="lastName" className="form-label">Moneda</label>
+                    <input type="text" className="form-control" id="lastName" value="USD" readOnly/>                    
+                  </div>
+                </div>            
+            
+                <hr className="my-4"/>
+
+                <button onClick={payment} className="w-100 btn btn-primary btn-lg" type="button">Finalizar con el Pago</button>
+              </form>
+            </div>
+          </div>
+      </main>
+
     </div>
+
   );
 }
 
