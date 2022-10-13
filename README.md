@@ -17,7 +17,7 @@ git clone https://github.com/izipay-pe/Popin-PaymentFormT1-React.git
 
 * Ingrese a la carpeta raiz del proyecto.
 
-* Agregue la dependencia embedded-form-glue o instale todas las dependencias que necesita el proyecto:
+* Agregue la dependencia **embedded-form-glue** o instale todas las dependencias que necesita el proyecto:
 
 ```sh
 npm install --save @lyracom/embedded-form-glue
