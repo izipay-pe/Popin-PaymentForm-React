@@ -9,15 +9,15 @@ function App() {
   const [isValid, setIsValid] = useState(true);
   const [amount, setAmount] = useState("");
 
-  const publicKey = "{ShopId}:testpublickey_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-  const endPoint = "https://api.micuentaweb.pe";
-  const server = "http://yourserver.pe";
-
+  const publicKey = "~~CHANGE_ME_ENDPOINT~~";
+  const endPoint = "~~CHANGE_ME_ENDPOINT~~";
+  const formToken = "~~CHANGE_ME_ENDPOINT~~";
+  const server = "http://localshot:3000";
+  
   const payment = ()=>{
-    //Expresion Regular Solo Números
     const ExpRegSoloNumeros="^[0-9]+$";
-    //Evaluación de Cadena Valida de Solo Números 
     if(amount.match(ExpRegSoloNumeros)!=null){
+      // Obtener el formToken
       getFormToken(amount,publicKey,endPoint);
       setIsShow(true);
     }else{
@@ -25,7 +25,6 @@ function App() {
       setTimeout(()=>setIsValid(true),3000)
     }
   }
-
   const getFormToken = (monto, publicKey, domain) => {
     const dataPayment = {
         amount: monto*100,
@@ -35,19 +34,21 @@ function App() {
         },
         orderId: "pedido-0"
     }
-    axios.post(`${server}/api/createPayment`,dataPayment)
-    .then(({data}) => {
+    // axios.post(`${server}/api/createPayment`,dataPayment)
+    // .then(({data}) => {
       KRGlue.loadLibrary(domain,publicKey)
       .then(({KR}) => KR.setFormConfig({
-        formToken:data.formToken,
+        formToken: formToken
+        // formToken:data.formToken,
       }))
       .then(({ KR }) => KR.onSubmit(validatePayment) )
       .then(({ KR }) => KR.attachForm("#form") )
       .then(({ KR, result }) => KR.showForm(result.formId))
-    })
+  // })
     .catch(err=>console.log(err))
 
   }
+
 
   const validatePayment = (resp) => {
     axios.post(`${server}/api/validatePayment`, resp)
@@ -56,6 +57,8 @@ function App() {
         setIsShow(false);
         alert("Pago Satisfactorio");
         
+      }else{
+        alert("Pago Inválido");
       }
     })
     return false;

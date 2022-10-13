@@ -1,49 +1,123 @@
 # Popin Payment Form React
-Este es un ejemplo practico con la pasarela de pago de Izipay utilizando el formulario de pago popin.  
-Visite la documentación para más información aquí: [Documentación Izipay](https://secure.micuentaweb.pe/doc/es-PE/rest/V4.0/javascript/quick_start_popin.html)
+
+Esta página explica cómo crear un formulario de pago dinámico desde cero utilizando React y la biblioteca de embedded-form-glue.
+
+<a name="Requisitos_Previos"></a>
 
 ## Requisitos Previos
-* Tener nodejs version 14.0.0 o posteriores.
-* Servidor Backend. Ejemplo de servidor en nodejs [aquí]()
-* Claves de integración. [Guía de como obtenerlo]()
 
-## 1.- Descargar el proyecto 
-Descargar el proyecto .zip ingresado [aquí](https://github.com/izipay-pe/Popin-PaymentFormT1-React/archive/refs/heads/main.zip) ó clonarlo con git.
+* Extraer credenciales del Back Office Vendedor. [Guía Aquí](https://github.com/izipay-pe/obtener-credenciales-de-conexion)
+* Debe instalar la [versión de LTS node.js](https://nodejs.org/es/).
 
+## 1.- Crear el proyecto 
+* Descargar el proyecto .zip ingresando [aquí](https://github.com/izipay-pe/Popin-PaymentFormT1-React/archive/refs/heads/main.zip) ó clonarlo con git.
 ```sh
 git clone https://github.com/izipay-pe/Popin-PaymentFormT1-React.git
 ``` 
 
-## 2.- Configurar las credenciales (Frontend):
-Obtener las credenciales de su Back Office Vendedor y copiar la `Clave Pública` en las variable correspondiente en el archivo creado llamado: `App.js` 
+* Ingrese a la carpeta raiz del proyecto.
+
+* Agregue la dependencia embedded-form-glue o instale todas las dependencias que necesita el proyecto:
 
 ```sh
-    const publicKey = "{ShopId}:testpublickey_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-    const endPoint = "https://api.micuentaweb.pe";
-    const server = "http://yourserver.pe";
-``` 
-
-## 2.- Configurar las credenciales (Backend):
-Obtener las credenciales de su Back Office Vendedor y copiar las variables correspondientes en el archivo de configuración de su backend
-
-```sh
-    ID_STORE=*********** Identifier of the store of your merchant
-    TEST_PASSWORD=************** Test password of your store
-    PROD_PASSWORD=************** PROD password of your store
-    TEST_KEY_HMAC_SHA_256=****************** HMAC TEST key of your trade
-    PROD_KEY_H,AC_SHA_256=****************** HMAC PROD key of your trade
+npm install --save @lyracom/embedded-form-glue
+ó
+npm install
 ```
 
-## 3.-Configurar la respuesta del pago por IPN 
-Configurar la URL de notificación al final del pago para que su servidor web esté al tanto de la información del estado de pago de la transacción. Vea la documentación para más información. Aquí [IPN](https://secure.micuentaweb.pe/doc/es-PE/form-payment/quick-start-guide/implementar-la-ipn.html)  
-
-Ejemplo de implementación. [Aquí](https://github.com/izipay-pe/Redirect-PaymentForm-IpnT1-PHP#redirect-paymentform-ipnt1-php)
-
-## 4- Ejecutar el proyecto con el siguiente comando 
+* Ejecútelo y pruébelo:
 ```sh
-npm install
 npm start
 ```
 
-## 5.- Demo
-Url de ejemplo [Formulario Popin](https://app-izipay.000webhostapp.com/popin/)
+ver el resultado en http://localhost:3000/
+
+## 2.- Agregar el formulario de pago
+**Nota**: Reemplace **[CHANGE_ME]** con sus credenciales de `API REST` extraídas desde el Back Office Vendedor, ver [Requisitos Previos](#Requisitos_Previos).
+
+* Editar en public/index.html en la sección HEAD.
+
+```javascript
+<!-- tema y plugins. debe cargarse en la sección HEAD -->
+<link rel="stylesheet"
+href="~~CHANGE_ME_ENDPOINT~~/static/js/krypton-client/V4.0/ext/classic-reset.css">
+<script
+    src="~~CHANGE_ME_ENDPOINT~~/static/js/krypton-client/V4.0/ext/classic.js">
+</script>
+```
+
+* Edite el componente predeterminado src/App.js, con el siguiente codigo si quiere interactuar con el formulario de pago, con un endpoint propio.
+
+```javascript
+import { useState } from 'react';
+import KRGlue from '@lyracom/embedded-form-glue';
+import axios from 'axios';
+import PaymentForm from './components/PaymentForm';
+
+function App() {
+
+  const [isShow, setIsShow] = useState(false);
+  const [isValid, setIsValid] = useState(true);
+  const [amount, setAmount] = useState("");
+
+  const endPoint = "~~CHANGE_ME_ENDPOINT~~";
+  const publicKey = "~~CHANGE_ME_PUBLIC_KEY~~";
+  const formToken = "DEMO-TOKEN-TO-BE-REPLACED";
+
+  const getFormToken = (monto, publicKey, domain) => {
+
+      KRGlue.loadLibrary(domain,publicKey)
+      .then(({KR}) => KR.setFormConfig({
+        formToken: formToken,
+      }))
+      .then(({ KR }) => KR.onSubmit(validatePayment) )
+      .then(({ KR }) => KR.attachForm("#form") )
+      .then(({ KR, result }) => KR.showForm(result.formId))
+    .catch(err=>console.log(err))
+
+  }
+
+``` 
+
+# 3.- Transacción de prueba
+El formulario de pago está listo, puede intentar realizar una transacción utilizando una tarjeta de prueba con la barra de herramientas de depuración (en la parte inferior de la página).
+
+Si intenta pagar, tendrá el siguiente error: **CLIENT_998: Demo form, see the documentation**.
+Es porque el **formToken** que ha definido usando **KR.setFormConfig** está configurado en **DEMO-TOKEN-TO-BE-REPLACED**.
+
+you have to create a **formToken** before displaying the payment form using Charge/CreatePayment web-service.
+For more information, please take a look to:
+
+- [Formulario incrustado: prueba rápida](https://secure.micuentaweb.pe/doc/es-PE/rest/V4.0/javascript/quick_start_js.html)
+- [Primeros pasos: pago simple](https://secure.micuentaweb.pe/doc/es-PE/rest/V4.0/javascript/guide/start.html)
+- [Servicios web - referencia de la API REST](https://secure.micuentaweb.pe/doc/es-PE/rest/V4.0/api/reference.html)
+
+## 4.- Verificación de hash de pago
+
+El hash de pago debe validarse en el lado del servidor para evitar la exposición de su clave hash personal.
+
+En el lado del servidor:
+
+```js
+const express = require('express')
+const hmacSHA256 = require('crypto-js/hmac-sha256')
+const Hex = require('crypto-js/enc-hex')
+const app = express()
+(...)
+// válida los datos de pago dados (hash)
+app.post('/validatePayment', (req, res) => {
+  const answer = req.body.clientAnswer
+  const hash = req.body.hash
+  const answerHash = Hex.stringify(
+    hmacSHA256(JSON.stringify(answer), 'CHANGE_ME: HMAC SHA256 KEY')
+  )
+  if (hash === answerHash) res.status(200).send('Valid payment')
+  else res.status(500).send('Payment hash mismatch')
+})
+(...)
+```
+## 5.- Implementar IPN
+
+* Ver manual de implementacion de la IPN [Aquí](https://secure.micuentaweb.pe/doc/es-PE/rest/V4.0/kb/payment_done.html)
+
+* Ver el ejemplo de la respuesta IPN [Aquí](https://github.com/izipay-pe/Redirect-PaymentForm-IpnT1-PHP)
