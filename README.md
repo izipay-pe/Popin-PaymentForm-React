@@ -120,7 +120,91 @@ function App() {
 }
 export default App;
 ```
-## 3.- Implementar IPN
+
+## 3.- Transacción de prueba
+
+El formulario de pago está listo, puede intentar realizar una transacción utilizando una tarjeta de prueba con la barra de herramientas de depuración (en la parte inferior de la página).
+
+Si intenta pagar, tendrá el siguiente error: **CLIENT_998: Demo form, see the documentation**.
+Es porque el **formToken** que ha definido usando **KR.setFormConfig** está configurado en **DEMO-TOKEN-TO-BE-REPLACED**.
+
+you have to create a **formToken** before displaying the payment form using Charge/CreatePayment web-service.
+For more information, please take a look to:
+
+- [Formulario incrustado: prueba rápida](https://secure.micuentaweb.pe/doc/es-PE/rest/V4.0/javascript/quick_start_js.html)
+- [Primeros pasos: pago simple](https://secure.micuentaweb.pe/doc/es-PE/rest/V4.0/javascript/guide/start.html)
+- [Servicios web - referencia de la API REST](https://secure.micuentaweb.pe/doc/es-PE/rest/V4.0/api/reference.html)
+
+# 4.- Verificación de hash de pago
+
+El hash de pago debe validarse en el lado del servidor para evitar la exposición de su clave hash personal.
+
+En el lado del servidor:
+
+```js
+const express = require('express')
+const hmacSHA256 = require('crypto-js/hmac-sha256')
+const Hex = require('crypto-js/enc-hex')
+const app = express()
+(...)
+// válida los datos de pago dados (hash)
+app.post('/validatePayment', (req, res) => {
+  const answer = req.body.clientAnswer
+  const hash = req.body.hash
+  const answerHash = Hex.stringify(
+    hmacSHA256(JSON.stringify(answer), 'CHANGE_ME: HMAC SHA256 KEY')
+  )
+  if (hash === answerHash) res.status(200).send('Valid payment')
+  else res.status(500).send('Payment hash mismatch')
+})
+(...)
+```
+
+Del lado del cliente:
+
+```js
+import { useState } from 'react';
+import KRGlue from '@lyracom/embedded-form-glue';
+import axios from 'axios';
+import PaymentForm from './components/PaymentForm';
+
+function App() {
+
+  const [isShow, setIsShow] = useState(false);
+  const [isValid, setIsValid] = useState(true);
+  const [amount, setAmount] = useState("");
+
+  const publicKey = "~~CHANGE_ME_ENDPOINT~~";
+  const endPoint = "~~CHANGE_ME_ENDPOINT~~";
+  const formToken = "~~CHANGE_ME_ENDPOINT~~";
+  const server = "http://localshot:3000";
+  
+  const payment = ()=>{...}
+  const getFormToken = (monto, publicKey, domain) => {
+    const dataPayment = {
+        amount: monto*100,
+        currency: "USD",
+        customer:{
+          email: "example@gmail.com"
+        },
+        orderId: "pedido-0"
+    }
+    KRGlue.loadLibrary(domain,publicKey)
+    .then(({KR}) => KR.setFormConfig({
+    formToken: formToken
+    }))
+    .then(({ KR }) => KR.onSubmit(validatePayment) )
+    .then(({ KR }) => KR.attachForm("#form") )
+    .then(({ KR, result }) => KR.showForm(result.formId))
+    .catch(err=>console.log(err))
+
+  }
+
+  const validatePayment = (resp) => {...}
+(...)
+```
+
+## 5.- Implementar IPN
 
 * Ver manual de implementacion de la IPN [Aquí](https://secure.micuentaweb.pe/doc/es-PE/rest/V4.0/kb/payment_done.html)
 
