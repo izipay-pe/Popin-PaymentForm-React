@@ -63,7 +63,7 @@ function App() {
   const publicKey = "~~CHANGE_ME_ENDPOINT~~";
   const endPoint = "~~CHANGE_ME_ENDPOINT~~";
   const formToken = "~~CHANGE_ME_ENDPOINT~~";
-  const server = "http://localshot:3000";
+  const server = "http://localhost:3000";
   
   const payment = ()=>{...}
   const getFormToken = (monto, publicKey, domain) => {
@@ -177,7 +177,7 @@ function App() {
   const publicKey = "~~CHANGE_ME_ENDPOINT~~";
   const endPoint = "~~CHANGE_ME_ENDPOINT~~";
   const formToken = "~~CHANGE_ME_ENDPOINT~~";
-  const server = "http://localshot:3000";
+  const server = "http://localhost:3000";
   
   const payment = ()=>{...}
   const getFormToken = (monto, publicKey, domain) => {
@@ -200,7 +200,19 @@ function App() {
 
   }
 
-  const validatePayment = (resp) => {...}
+  const validatePayment = (resp) => {
+        axios.post(`${server}/validatePayment`, resp)
+    .then(({data}) => {
+      if (data==="Valid Payment"){
+        setIsShow(false);
+        alert("Pago Satisfactorio");
+        
+      }else{
+        alert("Pago Inválido");
+      }
+    })
+    return false;
+  }
 (...)
 ```
 
