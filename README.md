@@ -60,61 +60,87 @@ function App() {
   const [isValid, setIsValid] = useState(true);
   const [amount, setAmount] = useState("");
 
+  const publicKey = "~~CHANGE_ME_ENDPOINT~~";
   const endPoint = "~~CHANGE_ME_ENDPOINT~~";
-  const publicKey = "~~CHANGE_ME_PUBLIC_KEY~~";
-  const formToken = "DEMO-TOKEN-TO-BE-REPLACED";
-
+  const formToken = "~~CHANGE_ME_ENDPOINT~~";
+  const server = "http://localshot:3000";
+  
+  const payment = ()=>{
+    const ExpRegSoloNumeros="^[0-9]+$";
+    if(amount.match(ExpRegSoloNumeros)!=null){
+      // Obtener el formToken
+      getFormToken(amount,publicKey,endPoint);
+      setIsShow(true);
+    }else{
+      setIsValid(false);
+      setTimeout(()=>setIsValid(true),3000)
+    }
+  }
   const getFormToken = (monto, publicKey, domain) => {
-
-      KRGlue.loadLibrary(domain,publicKey)
-      .then(({KR}) => KR.setFormConfig({
-        formToken: formToken,
-      }))
-      .then(({ KR }) => KR.onSubmit(validatePayment) )
-      .then(({ KR }) => KR.attachForm("#form") )
-      .then(({ KR, result }) => KR.showForm(result.formId))
+    const dataPayment = {
+        amount: monto*100,
+        currency: "USD",
+        customer:{
+          email: "example@gmail.com"
+        },
+        orderId: "pedido-0"
+    }
+    KRGlue.loadLibrary(domain,publicKey)
+    .then(({KR}) => KR.setFormConfig({
+    formToken: formToken
+    }))
+    .then(({ KR }) => KR.onSubmit(validatePayment) )
+    .then(({ KR }) => KR.attachForm("#form") )
+    .then(({ KR, result }) => KR.showForm(result.formId))
     .catch(err=>console.log(err))
 
   }
 
-``` 
+  const validatePayment = (resp) => {
+    axios.post(`${server}/api/validatePayment`, resp)
+    .then(({data}) => {
+      if (data==="Valid Payment"){
+        setIsShow(false);
+        alert("Pago Satisfactorio");
+        
+      }else{
+        alert("Pago Inválido");
+      }
+    })
+    return false;
+  }
 
-# 3.- Transacción de prueba
-El formulario de pago está listo, puede intentar realizar una transacción utilizando una tarjeta de prueba con la barra de herramientas de depuración (en la parte inferior de la página).
+  return (
+    <div className='container'>
+        <main>
+            <div className="py-5 text-center">      
+                ...   
+            </div>
 
-Si intenta pagar, tendrá el siguiente error: **CLIENT_998: Demo form, see the documentation**.
-Es porque el **formToken** que ha definido usando **KR.setFormConfig** está configurado en **DEMO-TOKEN-TO-BE-REPLACED**.
+            <div className="row g-5">
+                <div className="col-md-5 col-lg-4 order-md-last">
+                    <div className="d-flex justify-content-center">
+                        <div id="myDIV" className="formulario" style={{display: isShow?"block":"none" }}>
+                            <div id="form">
+                                <PaymentForm popin={true} />
+                            </div> 
+                        </div>                         
+                    </div>                    
+                    <hr className="my-4"/>
+                </div>
 
-you have to create a **formToken** before displaying the payment form using Charge/CreatePayment web-service.
-For more information, please take a look to:
-
-- [Formulario incrustado: prueba rápida](https://secure.micuentaweb.pe/doc/es-PE/rest/V4.0/javascript/quick_start_js.html)
-- [Primeros pasos: pago simple](https://secure.micuentaweb.pe/doc/es-PE/rest/V4.0/javascript/guide/start.html)
-- [Servicios web - referencia de la API REST](https://secure.micuentaweb.pe/doc/es-PE/rest/V4.0/api/reference.html)
-
-## 4.- Verificación de hash de pago
-
-El hash de pago debe validarse en el lado del servidor para evitar la exposición de su clave hash personal.
-
-En el lado del servidor:
-
-```js
-const express = require('express')
-const hmacSHA256 = require('crypto-js/hmac-sha256')
-const Hex = require('crypto-js/enc-hex')
-const app = express()
-(...)
-// válida los datos de pago dados (hash)
-app.post('/validatePayment', (req, res) => {
-  const answer = req.body.clientAnswer
-  const hash = req.body.hash
-  const answerHash = Hex.stringify(
-    hmacSHA256(JSON.stringify(answer), 'CHANGE_ME: HMAC SHA256 KEY')
-  )
-  if (hash === answerHash) res.status(200).send('Valid payment')
-  else res.status(500).send('Payment hash mismatch')
-})
-(...)
+                <div className="col-md-7 col-lg-8">          
+                    <form className="needs-validation">
+                        ...   
+                        <button onClick={payment} className="w-100 btn btn-primary btn-lg" type="button">Finalizar con el Pago</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+  );
+}
+export default App;
 ```
 ## 5.- Implementar IPN
 
