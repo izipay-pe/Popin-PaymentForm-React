@@ -65,17 +65,7 @@ function App() {
   const formToken = "~~CHANGE_ME_ENDPOINT~~";
   const server = "http://localshot:3000";
   
-  const payment = ()=>{
-    const ExpRegSoloNumeros="^[0-9]+$";
-    if(amount.match(ExpRegSoloNumeros)!=null){
-      // Obtener el formToken
-      getFormToken(amount,publicKey,endPoint);
-      setIsShow(true);
-    }else{
-      setIsValid(false);
-      setTimeout(()=>setIsValid(true),3000)
-    }
-  }
+  const payment = ()=>{...}
   const getFormToken = (monto, publicKey, domain) => {
     const dataPayment = {
         amount: monto*100,
@@ -96,19 +86,7 @@ function App() {
 
   }
 
-  const validatePayment = (resp) => {
-    axios.post(`${server}/api/validatePayment`, resp)
-    .then(({data}) => {
-      if (data==="Valid Payment"){
-        setIsShow(false);
-        alert("Pago Satisfactorio");
-        
-      }else{
-        alert("Pago Inválido");
-      }
-    })
-    return false;
-  }
+  const validatePayment = (resp) => {...}
 
   return (
     <div className='container'>
@@ -142,7 +120,7 @@ function App() {
 }
 export default App;
 ```
-## 5.- Implementar IPN
+## 3.- Implementar IPN
 
 * Ver manual de implementacion de la IPN [Aquí](https://secure.micuentaweb.pe/doc/es-PE/rest/V4.0/kb/payment_done.html)
 
