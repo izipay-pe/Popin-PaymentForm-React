@@ -60,12 +60,13 @@ function App() {
   const [isValid, setIsValid] = useState(true);
   const [amount, setAmount] = useState("");
 
-  const publicKey = "~~CHANGE_ME_ENDPOINT~~";
+  const publicKey = "~~CHANGE_ME_PUBLIC_KEY~~";
   const endPoint = "~~CHANGE_ME_ENDPOINT~~";
-  const formToken = "~~CHANGE_ME_ENDPOINT~~";
-  const server = "http://localhost:3000";
+  const formToken = "~~DEMO_TOKEN-TO-BE-REPLACED~~";
+  const server = "http://your_server.com";
   
   const payment = ()=>{...}
+
   const getFormToken = (monto, publicKey, domain) => {
     const dataPayment = {
         amount: monto*100,
@@ -83,7 +84,6 @@ function App() {
     .then(({ KR }) => KR.attachForm("#form") )
     .then(({ KR, result }) => KR.showForm(result.formId))
     .catch(err=>console.log(err))
-
   }
 
   const validatePayment = (resp) => {...}
@@ -100,6 +100,7 @@ function App() {
                     <div className="d-flex justify-content-center">
                         <div id="myDIV" className="formulario" style={{display: isShow?"block":"none" }}>
                             <div id="form">
+                                {/* Formulario de pago POPIN */}
                                 <PaymentForm popin={true} />
                             </div> 
                         </div>                         
@@ -125,8 +126,8 @@ export default App;
 
 El formulario de pago está listo, puede intentar realizar una transacción utilizando una tarjeta de prueba con la barra de herramientas de depuración (en la parte inferior de la página).
 
-Si intenta pagar, tendrá el siguiente error: **CLIENT_998: Demo form, see the documentation**.
-Es porque el **formToken** que ha definido usando **KR.setFormConfig** está configurado en **DEMO-TOKEN-TO-BE-REPLACED**.
+Si intenta pagar, tendrá el siguiente error: **CLIENT_100: Demo form, see the documentation**.
+Es porque el **formToken** es inválido, está definido usando **KR.setFormConfig** y está configurado en **DEMO-TOKEN-TO-BE-REPLACED**.
 
 you have to create a **formToken** before displaying the payment form using Charge/CreatePayment web-service.
 For more information, please take a look to:

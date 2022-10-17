@@ -8,11 +8,12 @@ function App() {
   const [isShow, setIsShow] = useState(false);
   const [isValid, setIsValid] = useState(true);
   const [amount, setAmount] = useState("");
+  const [error, setError] = useState("");
 
-  const publicKey = "~~CHANGE_ME_ENDPOINT~~";
+  const publicKey = "~~CHANGE_ME_PUBLIC_KEY~~";
   const endPoint = "~~CHANGE_ME_ENDPOINT~~";
-  const formToken = "~~CHANGE_ME_ENDPOINT~~";
-  const server = "http://localshot:3000";
+  const formToken = "~~DEMO_TOKEN-TO-BE-REPLACED~~";
+  const server = "http://your_server.com";
   
   const payment = ()=>{
     const ExpRegSoloNumeros="^[0-9]+$";
@@ -28,7 +29,7 @@ function App() {
   const getFormToken = (monto, publicKey, domain) => {
     const dataPayment = {
         amount: monto*100,
-        currency: "USD",
+        currency: "PEN",
         customer:{
           email: "example@gmail.com"
         },
@@ -45,7 +46,7 @@ function App() {
       .then(({ KR }) => KR.attachForm("#form") )
       .then(({ KR, result }) => KR.showForm(result.formId))
   // })
-    .catch(err=>console.log(err))
+    .catch(err=>setError(err))
 
   }
 
@@ -69,7 +70,10 @@ function App() {
       <main>
           <div className="py-5 text-center">      
             <h3>Ejemplo de un formulario incrustado con React</h3>
-            <p className="lead"></p>
+            <div className="alert alert-danger align-items-center" role="alert" style={{display: error!==""?"flex":"none"}}>
+              <svg className="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:"><use xlinkHref="#exclamation-triangle-fill"/></svg>
+              <div>{error}</div>
+            </div>
           </div>
 
           <div className="row g-5">
@@ -83,6 +87,7 @@ function App() {
               <div className="d-flex justify-content-center">
                 <div id="myDIV" className="formulario" style={{display: isShow?"block":"none" }}>
                   <div id="form">
+                    {/* Formulario de pago POPIN */}
                     <PaymentForm popin={true} />
                   </div> 
                 </div>                         
@@ -90,7 +95,6 @@ function App() {
               <hr className="my-4"/>
             </div>
               
-
             <div className="col-md-7 col-lg-8">            
               <form className="needs-validation">
                 <div className="row g-3">
